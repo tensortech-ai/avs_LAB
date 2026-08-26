@@ -12,22 +12,20 @@ To address this issue, AVS Nested Labs has been introduced. It provides organiza
 
 Thus, the solution was to create automation package that will deploy AVS based on Enterprise Scale for Landing Zone templates and run PowerShell scripts that can provision **nested labs** within AVS Private Cloud to server the purpose of on-premises environment.
 
-![highleveldiagram](images/Lab%20Diagram.png)
-
 ## Instructions
 
 ### Prerequisites
 
-1. Azure CLI: You can download it from [here](https://aka.ms/azurecli).
+1. Azure CLI: You can download it from the official Microsoft website.
 2. AVS 3-Node Quota available in an Azure Subscription.
 3. Permissions, one of the following:
    - Azure RBAC role: **Owner** at Azure Subscription level (scope).
    - Azure RBAC roles: **Contributor** and **User Access Administrator** at Azure Subscription level (scope).
-   - Deploy AVS separately, highly recommended through [AVS Accelerator](https://aka.ms/avsenterprisescalerepo), then jump to this [section](#what-if-i-already-have-avs-deployed-can-i-just-provision-the-nested-labs).
+   - Deploy AVS separately, highly recommended through AVS Accelerator, then jump to the relevant section below.
 
 ### Before you deploy
 
-  1. Decide if you want to deploy a [single](./bicep/ESLZDeploy.Single.LAB.deploy.bicep) AVS Private Cloud (SDDC) , or [multiple](./bicep/ESLZDeploy.LAB.deploy.bicep) AVS Private Clouds.
+  1. Decide if you want to deploy a single AVS Private Cloud (SDDC), or multiple AVS Private Clouds.
   2. Review the parameters file, that corresponds to your deployment, to make sure you have the right parameters for the deployment. In other words, this depends if you are just deploying a single AVS Private Cloud (SDDC) or multiple ones.
   3. Based on your choice, you can use the instructions in the section below to kick-off the deployment.
 
@@ -35,7 +33,7 @@ Thus, the solution was to create automation package that will deploy AVS based o
 
 Here are the steps you need to take to deploy AVS Lab with nested VMware lab environments.
 
-1. [Clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) this repository.
+1. Clone this repository.
 
    ```powershell
    git clone https://github.com/Azure/avslabs.git
@@ -69,7 +67,7 @@ Here are the steps you need to take to deploy AVS Lab with nested VMware lab env
    az deployment sub create -n "AVS-LAB-2023-02-15" -l "brazilsouth" -f "ESLZDeploy.LAB.deploy.bicep" -p "ESLZDeploy.LAB.deploy.bicep.parameters.json" --no-wait
    ```
 
-For a reference to *az* deployment command, see [this](https://learn.microsoft.com/en-us/cli/azure/deployment/sub?view=azure-cli-latest#az-deployment-sub-create)
+For a reference to az deployment command, see the official Azure CLI documentation.
 
 ## What if I already have AVS deployed? Can I just provision the nested lab/s?
 
@@ -84,7 +82,7 @@ Yes, you can! 💡
 
 1) **Internet access** (outbound) from AVS Private Cloud (SDDC). It could be through managed SNAT, or though more complicated setup (e.g. using Firewalls and NVA).
    
-   Follow the documented instructions on [how to enable SNAT Internet outbound access from the Azure Portal](https://learn.microsoft.com/azure/azure-vmware/enable-managed-snat-for-workloads). Your should see something similar to the following screenshot. ![avssnatinternetaccess](images/internet-access-snat.png)
+   Follow the documented instructions on how to enable SNAT Internet outbound access from the Azure Portal. Your should see something similar to the following screenshot.
 
 1) A deployed Jumpbox VM that can reach out to AVS Private Cloud.
 
@@ -119,14 +117,14 @@ Yes, you can! 💡
    }
    ```
 
-1) At Jumpbox VM, download [bootstrap.ps1](https://raw.githubusercontent.com/Azure/avslabs/main/scripts/bootstrap.ps1) script and store it in **C:\Temp** directory.
+1) At Jumpbox VM, download bootstrap.ps1 script and store it in **C:\Temp** directory.
    You can run the command below from Command Prompt to download **boostrap.ps1**:
 
    ```powershell
    powershell.exe -ExecutionPolicy Unrestricted -Command "New-Item -Path C:\ -Name Temp -ItemType Directory -ErrorAction Ignore; Invoke-WebRequest -Uri https://raw.githubusercontent.com/Azure/avslabs/main/scripts/bootstrap.ps1 -OutFile C:\Temp\bootstrap.ps1; Unblock-File -Path C:\Temp\bootstrap.ps1"
    ```
 
-1) At Jumpbox VM, you may need to install [Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version) if it is not installed already.
+1) At Jumpbox VM, you may need to install Microsoft Visual C++ Redistributable if it is not installed already.
 
 
 ### How to execute? 🧑🏻‍💻
@@ -156,27 +154,19 @@ Yes, you can! 💡
 
    5) **You can track progress** by keeping an eye on `bootstrap.log` and `bootstrap-nestedlabs.log` which will be created in **C:\Temp** directory.
 
-      <img src="images/bootstrap.png" alt="bootstrap-log" width="500" />
-
-      <img src="images/bootstrap-nestedlabs.png" alt="bootstrap-nestedlabs-log" width="500" />
-
-   6) Note that the Jumpbox VM will be **rebooted** after `bootstrap.ps1` is done executing. A task will be created at Windows Task Scheduler. The task will be triggered at Windows startup, and it will execute `bootstrap-nestedlabs.ps1`. At the end of the execution that Task will be **disabled**. If you want to avoid using the scheduled task method, see [Deploy out of a ScheduledTask context](#deploy-out-of-a-scheduledtask-context) section.
-
-      <img src="images/scheduled-task-before-execution.png" alt="scheduled-task-before-execution" width="400" />
-      
-      <img src="images/scheduled-task-after-execution.png" alt="scheduled-task-after-execution" width="400" />
+   6) Note that the Jumpbox VM will be **rebooted** after `bootstrap.ps1` is done executing. A task will be created at Windows Task Scheduler. The task will be triggered at Windows startup, and it will execute `bootstrap-nestedlabs.ps1`. At the end of the execution that Task will be **disabled**. If you want to avoid using the scheduled task method, see the "Deploy out of a ScheduledTask context" section.
 
 
 ### What is the final result? 🤔
 
-   The final result should be similar to what you see in the screenshot below. Notice the logs path. Also, notice the the nested lab vCenter IP address (i.e., 10.1.1.2), because GroupNumber was set to 1 and NumberOfNestedLabs was set to 1. ![screenshot](images/final-screenshot.png)
+   The final result should be similar to what you see in the logs. Notice the logs path. Also, notice the the nested lab vCenter IP address (i.e., 10.1.1.2), because GroupNumber was set to 1 and NumberOfNestedLabs was set to 1.
 
 ## How to execute without the need for System Assigned Managed Identity?
 
 In case you cannot deploy a System Assigned Managed Identity on the Jumpbox VM used to deploy resources, see the following process:
 
 First, prerequisites:
-   1) Make sure you enable Internet (outbound) access on your AVS private cloud. [Steps are here](https://learn.microsoft.com/azure/azure-vmware/enable-managed-snat-for-workloads#set-up-outbound-internet-access-by-using-the-managed-snat-service)
+   1) Make sure you enable Internet (outbound) access on your AVS private cloud. Steps are documented in the official Azure documentation.
 
 Then, here are the steps you need to perform:
 
@@ -227,7 +217,7 @@ Then, here are the steps you need to perform:
    1) Azure Virtual Network (or vWAN Hub) **IP CIDR block**
 1) AVS Private Cloud has Internet (outbound) access enabled. Usually through Managed SNAT if this is only for testing purposes.
 1) Make sure you are using the right credentials to access nested lab vCenter. Should be:
-   - Address: https://10.X.Y.2 , where X represent your team (group) number and Y is the instance number. For example, team/group 1, instance 2, will be: https://10.1.2.2
+   - Address: 10.X.Y.2 , where X represent your team (group) number and Y is the instance number. For example, team/group 1, instance 2, will be: 10.1.2.2
    - Username: **administrator@avs.lab**
    - Password: **MSFTavs1!**
 1) Worst case, try redeploying with different X, Y values. Before you proceed with further troubleshooting.
